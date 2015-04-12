@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block main %}
+<!--add button-->
+<button  class="btn btn-info" id="clickBtn">add host</button>
+<!--host table-->
+<table id="list" class="table table-bordered">
+</table>
+
+
+<!--add modal-->
+<div id="addModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Add Host</h4>
+      </div>
+
+      <div class="modal-body">
+     	<p id="errorMsg" class="text-danger"></p> 
+	<form class="form-horizontal" id="addForm">
+	 <div class="form-group">
+	  <label class="col-md-2 control-label">host</label>
+	  <div class="col-md-9">
+	    <input type="text" class="form-control" name="name" placeholder="input host">
+	  </div> 
+        </div> <!--add host end-->
+        <div class="form-group">
+	  <label class="col-md-2 control-label">IP</label>
+	  <div class="col-md-9">
+	    <input type="text" class="form-control" name="ip" placeholder="input ip">
+	  </div> 
+	</div><!--add ip end -->
+        <div class="form-group">
+	  <label class="col-md-2 control-label">IDC</label>
+	  <div class="col-md-9">
+	   <select name="idc"  class="form-control" id="idc_select"></select> 
+	  </div> 
+	</div><!--add idc end -->
+
+	<div class="form-group">
+	 <div class="col-md-4 col-md-offset-2">
+           <button class="btn btn-primary" >submit</button>
+           <button class="btn btn-warning" data-dismiss="modal">quit</button>
+         </div>
+	</div><!--button end-->
+	</form><!--form end-->
+
+
+      </div> <!--body end-->
+       <!-- <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div> -->
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<!--update modal-->
+<div id="updateModal" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Update Host</h4>
+      </div>
+
+      <div class="modal-body">
+     	<p id="errorMsg" class="text-danger"></p> <!--error-->
+
+	<form class="form-horizontal" id="updateForm">
+	<input type="hidden" id='idinput' name="id">  <!--update need id-->
+	 <div class="form-group">
+	  <label class="col-md-2 control-label">host</label>
+	  <div class="col-md-9">
+	    <input id="updatename"  type="text" class="form-control" name="name" placeholder="input host">
+	  </div> 
+        </div> <!--update host end-->
+        <div class="form-group">
+	  <label class="col-md-2 control-label">IP</label>
+	  <div class="col-md-9">
+	    <input id="updateip" type="text" class="form-control" name="ip" placeholder="input ip">
+	  </div> 
+	</div><!--update ip end -->
+        <div class="form-group">
+	  <label class="col-md-2 control-label">IDC</label>
+	  <div class="col-md-9">
+	   <select name="idc"  class="form-control" id="idc_update"></select> 
+	  </div> 
+	</div><!--add idc end -->
+	<div class="form-group">
+	 <div class="col-md-4 col-md-offset-2">
+           <button class="btn btn-primary" >update</button>
+           <button class="btn btn-warning" data-dismiss="modal">quit</button>
+         </div>
+	</div><!--button end-->
+	</form><!--form end-->
+      </div> <!--body end-->
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!--js-->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+  <script>
+/*select data function*/
+    function list(){	
+	$.get('/list',function(data){
+		var row_header = '<tr><th>Id</th><th>Host</th><th>Ip</th><th>Idc</th><th>update</th><th>delete</th></tr>'
+		var data = row_header+data
+		$('#list').html(data)    
+	
+	})               
+     }
+list()
+/*auto flush select data*/
+   setInterval(function(){ 
+        list()
+   },2000)
+
+/*select  idc*/
+function idc_select(){
+	$.get('/idc',function(result){
+		console.log(result)
+       		$('#idc_select').html(result)
+	})
+}
+/*update  idc*/
+function idc_update(){
+	$.get('/idc',function(result){
+		console.log(result)
+       		$('#idc_update').html(result)
+	})
+}
+/*click show modal*/
+     	$('#clickBtn').on('click',function(){
+		idc_select()    //select idc when click addmodal
+		$('#addModal').modal('show')
+	}) //show modal
+
+/*submit form add data*/
+     	$('#addForm').on('submit',function(){
+	   var str = $('#addForm').serialize()
+	   var url = '/add?'+str
+	   $.getJSON(url,function(result){
+	     console.log(result)
+	     if (result['error']==0){   //recevie json object
+		alert('sucuess')
+		$('#addModal').modal('hide')
+	     }else{
+	     	//alert('failed  '+result['msg'])
+		$('#errorMsg').html('failed '+result['msg']).show()
+	     }
+	   })
+	   return false
+	})  //submit form
+/*get data for update */
+$(document).on('click','.update-btn',function(){
+	var id = $(this).attr('data-id')
+        var getbyid = "/getbyid?id="+id
+	$.getJSON(getbyid,function(result){
+	  $('#idinput').val(result['id'])  //get id
+	  $('#updatename').val(result['name']) //change host name
+	  $('#updateip').val(result['ip']) //change ip
+	  console.log(result)   //for test
+	})
+	
+	idc_update() 
+	$('#updateModal').modal('show')  //show modal
+})
+
+/*update */
+     	$('#updateForm').on('submit',function(){
+	   var str = $('#updateForm').serialize()
+	   var url = '/update?'+str
+	   $.getJSON(url,function(result){
+	     console.log(result)
+	     if (result['error']==0){   //recevie json object
+		alert('sucuess')
+		$('#updateModal').modal('hide')
+	     }else{
+	     	//alert('failed  '+result['msg'])
+		$('#errorMsg').html('failed '+result['msg']).show()
+	     }
+	   })
+	   return false   //get data and end
+	})  //submit form
+
+
+/*delete data*/
+    $(document).on('click','.delete-btn',function(){
+       if(confirm("are you sure")){
+
+    	var id = $(this).attr('data-id')
+	var delete_url = '/delete?id='+id
+	$.get(delete_url,function(result){
+		if (result=='ok'){
+//			alert('success')
+			load_data()
+		}else{
+			alert(result)
+		}
+	})
+      }  // end confirm
+    })   // end document
+    
+</script>
+
+{% endblock %}  
